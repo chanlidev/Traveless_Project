@@ -17,50 +17,60 @@
         <input type="text" id="day" @bind="@DayOfWeek" placeholder="Day of Week" />
     </div>
     <div>
-        <button @onclick="FindFlights" style="background-color: blue; color: white;">Find Flights</button>
+        <button @onclick="FindFlights" style="background-color: blue; color: white; width: 200px; margin-top: 20px;">Find Flights</button>
     </div>
 </div>
 
 <h3 style="margin-top: 20px; text-align: center;">Flights</h3>
-<div style="border: 1px solid black; padding: 15px;">
+<div style="border: 1px solid black; height: 30px;">
     @if (MatchingFlights != null && MatchingFlights.Any())
     {
         @foreach (var flight in MatchingFlights)
         {
-            <p style="margin: 0;">@flight.FlightNumber, @flight.Airline, @flight.OriginAirport, @flight.DestinationAirport, @flight.DayOfWeek, @flight.DepartureTime, @flight.Price</p>
+            <p>@flight.FlightNumber, @flight.Airline, @flight.OriginAirport, @flight.DestinationAirport, @flight.DayOfWeek, @flight.DepartureTime, @flight.Price</p>
         }
     }
     else if (MatchingFlights != null && !MatchingFlights.Any())
     {
-        <p style="margin: 0;">No matching flights found.</p>
+        <p>No matching flights found.</p>
     }
 </div>
 
 <h3 style="margin-top: 50px; text-align: center;">Reserve</h3>
 <div>   
     <label for="flightcode" style="display: block;">Flight Code</label>
-    <input type="text" id="flightcode" placeholder="Flight" style="width: 100%;" />
+    <input type="text" id="flightcode" readonly value="@FlightCode" placeholder="Flight" style="width: 100%;" />
 
     <label for="airline" style="display: block;">Airline</label>
-    <input type="text" id="airline" placeholder="Airline" style="width: 100%;" />
+    <input type="text" id="airline" readonly value="@Airline" placeholder="Airline" style="width: 100%;" />
 
     <label for="day" style="display: block;">Day</label>
-    <input type="text" id="day" placeholder="Day" style="width: 100%;" />
+    <input type="text" id="day" readonly value="@Day" placeholder="Day" style="width: 100%;" />
 
     <label for="time" style="display: block;">Time</label>
-    <input type="text" id="time" placeholder="Time" style="width: 100%;" />
+    <input type="text" id="time" readonly value="@Time" placeholder="Time" style="width: 100%;" />
 
     <label for="cost" style="display: block;">Cost</label>
-    <input type="text" id="cost" placeholder="0" style="width: 100%;" />
+    <input type="text" id="cost" readonly value="@Cost" placeholder="0" style="width: 100%;" />
 
     <label for="name" style="display: block;">Name</label>
-    <input type="text" id="name" placeholder="Name" style="width: 100%;" />
+    <input type="text" id="name" @bind="@Name" placeholder="Name" style="width: 100%;" />
 
     <label for="citizenship" style="display: block;">Citizenship</label>
-    <input type="text" id="citizenship" placeholder="Citizenship" style="width: 100%;" />
+    <input type="text" id="citizenship" @bind="@Citizenship" placeholder="Citizenship" style="width: 100%;" />
 </div>
 <div style="display: flex; flex-direction: column; align-items: center; margin-top: 30px;">
-    <button style="background-color: blue; color: white;">Reserve</button>
+    <button @onclick="Reserve" style="background-color: blue; color: white; width: 200px">Reserve</button>
+</div>
+<div style="text-align: center; margin-top: 10px;">
+    @if (ReservationError)
+    {
+        <p style="color: red;">Please fill in all the required fields and select a flight.</p>
+    }
+    @if (!string.IsNullOrEmpty(ReservationCode))
+    {
+        <p>Reservation Code: @ReservationCode</p>
+    }
 </div>
 
 @code {
@@ -68,10 +78,58 @@
     private string FromAirport { get; set; }
     private string ToAirport { get; set; }
     private string DayOfWeek { get; set; }
+    private string FlightCode { get; set; }
+    private string Airline { get; set; }
+    private string Day { get; set; }
+    private string Time { get; set; }
+    private string Cost { get; set; }
+    private string Name { get; set; }
+    private string Citizenship { get; set; }
+    private bool ReservationError { get; set; }
+    private string ReservationCode { get; set; }
 
     private void FindFlights()
     {
         var flightManager = new FlightManager();
         MatchingFlights = flightManager.FindFlights(FromAirport, ToAirport, DayOfWeek);
+        if (MatchingFlights != null && MatchingFlights.Any())
+        {
+            var flight = MatchingFlights.First();
+
+            FlightCode = flight.FlightNumber;
+            Airline = flight.Airline;
+            Day = flight.DayOfWeek;
+            Time = flight.DepartureTime;
+            Cost = flight.Price;
+        }
+    }
+
+    private void Reserve()
+    {
+        if (string.IsNullOrEmpty(FlightCode) || string.IsNullOrEmpty(Name) || string.IsNullOrEmpty(Citizenship))
+        {
+            ReservationError = true;
+            ReservationCode = string.Empty;
+        }
+        else
+        {
+            ReservationCode = GenerateReservationCode();
+            ReservationError = false;
+        }
+    }
+
+    private string GenerateReservationCode()
+    {
+        // Generate a random letter using ASCII codes (65-90 represent A-Z)
+        char letter = (char)(new Random().Next(65, 91));
+
+        // Generate a random 4-digit number
+        int number = new Random().Next(1000, 10000);
+
+        // Combine the letter and number to form the reservation code
+        return $"{letter}{number}";
     }
 }
+
+
+
