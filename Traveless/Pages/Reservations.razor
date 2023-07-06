@@ -1,46 +1,95 @@
 ﻿@page "/reservations"
-
 @using Traveless.Data
-@inject WeatherForecastService ForecastService
 
-<h1>Weather forecast</h1>
+<h3 style="text-align: center;">Reservation Finder</h3>
 
-<p>This component demonstrates fetching data from a service.</p>
+<div style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <label for="reservationCode" style="display: block;">Code</label>
+        <input type="text" id="reservationCode" @bind="@ReservationCode" placeholder="Code" />
+    </div>
+    <div>
+        <label for="airline" style="display: block;">Airline</label>
+        <input type="text" id="airline" @bind="@Airline" placeholder="Airline" />
+    </div>
+    <div>
+        <label for="Name" style="display: block;">Name</label>
+        <input type="text" id="name" @bind="@Name" placeholder="Name" />
+    </div>
+    <div>
+        <button @onclick="FindReservation" style="background-color: blue; color: white; width: 200px; margin-top: 20px;">Find Reservations</button>
+    </div>
+</div>
 
-@if (forecasts == null)
-{
-	<p><em>Loading...</em></p>
-}
-else
-{
-	<table class="table">
-		<thead>
-			<tr>
-				<th>Date</th>
-				<th>Temp. (C)</th>
-				<th>Temp. (F)</th>
-				<th>Summary</th>
-			</tr>
-		</thead>
-		<tbody>
-			@foreach (var forecast in forecasts)
-			{
-				<tr>
-					<td>@forecast.Date.ToShortDateString()</td>
-					<td>@forecast.TemperatureC</td>
-					<td>@forecast.TemperatureF</td>
-					<td>@forecast.Summary</td>
-				</tr>
-			}
-		</tbody>
-	</table>
-}
+<h3 style="margin-top: 20px; text-align: center;">Reservations</h3>
+
+<div style="border: 1px solid black; height: 30px;">
+    @if (MatchingReservations != null && MatchingReservations.Any())
+    {
+        @foreach (var reservation in MatchingReservations)
+        {
+            <p>@reservation.ReservationCode, @reservation.FlightNumber, @reservation.Airline, @reservation.Price, @reservation.Name, @reservation.Citizenship, @reservation.Status</p>
+        }
+
+    }
+    else if (MatchingReservations != null && !MatchingReservations.Any())
+    {
+        <p>No matching flights found.</p>
+    }
+</div>
+
+<h3 style="margin-top: 50px; text-align: center;">Reserve</h3>
+<div>
+    <label for="reservedCode" style="display: block;">Reservation Code</label>
+    <input type="text" id="reservationCode" readonly value="@ReservationCode" placeholder="Code" style="width: 100%;" />
+
+    <label for="reservedFlightCode" style="display: block;">Flight Code</label>
+    <input type="text" id="flightcode" readonly value="@FlightCode" placeholder="Flight" style="width: 100%;" />
+
+    <label for="reservedAirline" style="display: block;">Airline</label>
+    <input type="text" id="airline" readonly value="@Airline" placeholder="Airline" style="width: 100%;" />
+
+    <label for="reservedPrice" style="display: block;">Cost</label>
+    <input type="text" id="cost" readonly value="@Cost" placeholder="0" style="width: 100%;" />
+
+    <label for="reservedName" style="display: block;">Name</label>
+    <input type="text" id="name" @bind="@Name" placeholder="Name" style="width: 100%;" />
+
+    <label for="time" style="display: block;">Citizenship</label>
+    <input type="text" id="citizenship" @bind="@Citizenship" placeholder="Citizenship" style="width: 100%;" />
+
+    <label for="status" style="display: block;">Status</label>
+    <input type="text" id="status" @bind="@Status" style="width: 100%;" />
+</div>
+
+
 
 @code {
-	private WeatherForecast[] forecasts;
+    private List<Reservation> MatchingReservations { get; set; }
+    private ReservationManager ReservationManager { get; set; }
+    private string ReservationCode { get; set; }
+    private string Airline { get; set; }
+    private string Name { get; set; }
+    private string FlightCode { get; set; }
+    private string Cost { get; set; }
+    private string Citizenship { get; set; }
+    private string Status { get; set; }
 
-	protected override async Task OnInitializedAsync()
-	{
-		forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
-	}
+
+    private void FindReservation()
+    {
+        var reservationManager = new ReservationManager("resources\reservations.csv");
+        MatchingReservations = reservationManager.FindReservations(ReservationCode, Airline, Name);
+        if (MatchingReservations != null && MatchingReservations.Any())
+        {
+            var reservation = MatchingReservations.First();
+            ReservationCode = reservation.ReservationCode;
+            FlightCode = reservation.FlightNumber;
+            Airline = reservation.Airline;
+            Cost = reservation.Price;
+            Name = reservation.Name;
+            Citizenship = reservation.Citizenship;
+            Status = reservation.Status;
+        }
+    }
 }

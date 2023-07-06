@@ -1,5 +1,7 @@
 ﻿@page "/flights"
 @using Traveless.Data
+@using System.Text;
+@using System.IO;
 
 <h3 style="text-align: center;">Flight Finder</h3>
 
@@ -113,10 +115,60 @@
         }
         else
         {
-            ReservationCode = GenerateReservationCode();
+            var reservationManager = new ReservationManager("reservations.csv");
+
+            // Create a new Reservation object
+            var reservation = new Reservation
+                {
+                    ReservationCode = GenerateReservationCode(),
+                    Name = Name,
+                    Citizenship = Citizenship,
+                    FlightNumber = FlightCode,
+                    Airline = Airline,
+                    DayOfWeek = Day,
+                    DepartureTime = Time,
+                    Price = Cost,
+                    Status = "Active"
+                };
+            reservationManager.AddReservation(reservation);
+
+            ReservationCode = reservation.ReservationCode;
             ReservationError = false;
+
+            // Combine matching flight and reservation into a new list
+            var reservations = MatchingFlights.Select(flight => new Reservation
+                {
+                    ReservationCode = reservation.ReservationCode,
+                    Name = reservation.Name,
+                    Citizenship = reservation.Citizenship,
+                    FlightNumber = flight.FlightNumber,
+                    Airline = flight.Airline,
+                    DayOfWeek = flight.DayOfWeek,
+                    DepartureTime = flight.DepartureTime,
+                    Price = flight.Price,
+                    Status = "Active"
+                }).ToList();
+
+            // Save reservations to a CSV file
+            SaveReservationsToCsv(reservations);
         }
     }
+
+    private void SaveReservationsToCsv(List<Reservation> reservations)
+    {
+        var csv = new StringBuilder();
+        csv.AppendLine("ReservationCode,Name,Citizenship,FlightNumber,Airline,DayOfWeek,DepartureTime,Price,Status");
+
+        foreach (var reservation in reservations)
+        {
+            var line = $"{reservation.ReservationCode},{reservation.Name},{reservation.Citizenship},{reservation.FlightNumber},{reservation.Airline},{reservation.DayOfWeek},{reservation.DepartureTime},{reservation.Price},{reservation.Status}";
+            csv.AppendLine(line);
+        }
+
+        var csvFilePath = Path.Combine(AppContext.BaseDirectory, @"resources\reservations.csv");
+        File.WriteAllText(csvFilePath, csv.ToString());
+    }
+
 
     private string GenerateReservationCode()
     {
