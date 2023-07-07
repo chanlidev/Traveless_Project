@@ -1,5 +1,6 @@
 ﻿@page "/reservations"
 @using Traveless.Data
+@using System.Text;
 
 <h3 style="text-align: center;">Reservation Finder</h3>
 
@@ -60,8 +61,10 @@
 
     <label for="status" style="display: block;">Status</label>
     <input type="text" id="status" @bind="@Status" style="width: 100%;" />
+    <div style="display: flex; flex-direction: column; align-items: center; margin-top: 30px;">
+        <button @onclick="UpdateReservation" style="background-color: blue; color: white; width: 200px;">Update</button>
+    </div>
 </div>
-
 
 
 @code {
@@ -74,11 +77,11 @@
     private string Cost { get; set; }
     private string Citizenship { get; set; }
     private string Status { get; set; }
-
+   
 
     private void FindReservation()
     {
-        var reservationManager = new ReservationManager("resources\reservations.csv");
+        var reservationManager = new ReservationManager("resources/reservations.csv");
         MatchingReservations = reservationManager.FindReservations(ReservationCode, Airline, Name);
         if (MatchingReservations != null && MatchingReservations.Any())
         {
@@ -90,6 +93,33 @@
             Name = reservation.Name;
             Citizenship = reservation.Citizenship;
             Status = reservation.Status;
+        }
+    }
+    
+
+    private void UpdateReservation()
+    {
+        try
+        {
+            var reservation = MatchingReservations?.FirstOrDefault();
+            if (reservation != null)
+            {
+                reservation.Name = Name;
+                reservation.Citizenship = Citizenship;
+                reservation.Status = Status;
+
+                if (ReservationManager == null)
+                {
+                    ReservationManager = new ReservationManager("resources/reservations.csv");
+                }
+
+                ReservationManager.UpdateReservation(reservation);
+                ReservationManager.SaveReservationsToCsv(); // Save using the same ReservationManager instance
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating reservation: {ex.Message}");
         }
     }
 }

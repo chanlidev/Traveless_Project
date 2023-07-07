@@ -165,7 +165,7 @@
             csv.AppendLine(line);
         }
 
-        var csvFilePath = Path.Combine(AppContext.BaseDirectory, @"resources\reservations.csv");
+        var csvFilePath = Path.Combine(AppContext.BaseDirectory, @"resources/reservations.csv");
         File.WriteAllText(csvFilePath, csv.ToString());
     }
 
