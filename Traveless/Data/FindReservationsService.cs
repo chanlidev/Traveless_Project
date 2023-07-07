@@ -15,13 +15,14 @@ namespace Traveless.Data
         {
             reservations = new List<Reservation>();
             this.csvFilePath = csvFilePath;
-            LoadReservationsFromCsv();
+            LoadReservationsFromCsv(reservations);
         }
 
         public List<Reservation> FindReservations(string reservationCode, string airline, string name)
         {
             List<Reservation> matchingReservations = new List<Reservation>();
-            string csvFilePath = Path.Combine(AppContext.BaseDirectory, @"resources/reservations.csv");
+            string documentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string csvFilePath = Path.Combine(documentsFolderPath, "reservations.csv");
             string[] lines = File.ReadAllLines(csvFilePath);
             foreach (string line in lines)
             {
@@ -43,15 +44,16 @@ namespace Traveless.Data
                     matchingReservations.Add(new Reservation
                     {
                         ReservationCode = csvReservationCode,
-                        FlightNumber = csvFlightNumber,
-                        Airline = csvAirline,
                         Name = csvName,
                         Citizenship = csvCitizenship,
-                        Status = csvStatus,
+                        FlightNumber = csvFlightNumber,
+                        Airline = csvAirline,
                         DayOfWeek = csvDay,
                         DepartureTime = csvDepartureTime,
-                        Price = csvPrice
+                        Price = csvPrice,
+                        Status = csvStatus   
                     });
+                    
                 }
             }
 
@@ -61,7 +63,7 @@ namespace Traveless.Data
         public void AddReservation(Reservation reservation)
         {
             reservations.Add(reservation);
-            SaveReservationsToCsv();
+            SaveReservationsToCsv(reservations);
         }
 
         public void UpdateReservation(Reservation reservation)
@@ -82,19 +84,21 @@ namespace Traveless.Data
                     // Create a new reservation record with the updated values
                     var updatedReservation = new Reservation
                     {
-                        ReservationCode = reservation.ReservationCode,
-                        FlightNumber = existingReservation.FlightNumber,
-                        Airline = existingReservation.Airline,
+                        ReservationCode = existingReservation.ReservationCode,
                         Name = reservation.Name,
                         Citizenship = reservation.Citizenship,
-                        Status = reservation.Status,
+                        FlightNumber = existingReservation.FlightNumber,
+                        Airline = existingReservation.Airline,
                         DayOfWeek = existingReservation.DayOfWeek,
                         DepartureTime = existingReservation.DepartureTime,
-                        Price = existingReservation.Price
+                        Price = existingReservation.Price,
+                        Status = reservation.Status
+                        
                     };
 
                     // Add the updated reservation to the list
                     reservations.Add(updatedReservation);
+                    SaveReservationsToCsv(reservations);
                 }
                 else
                 {
@@ -102,9 +106,10 @@ namespace Traveless.Data
                     existingReservation.Name = reservation.Name;
                     existingReservation.Citizenship = reservation.Citizenship;
                     existingReservation.Status = reservation.Status;
+                    SaveReservationsToCsv(reservations);
                 }
 
-                SaveReservationsToCsv();
+                
             }
             else
             {
@@ -113,7 +118,7 @@ namespace Traveless.Data
         }
 
 
-        private void LoadReservationsFromCsv()
+        private void LoadReservationsFromCsv(List<Reservation> reservations)
         {
             if (File.Exists(csvFilePath))
             {
@@ -134,52 +139,37 @@ namespace Traveless.Data
                     reservations.Add(new Reservation
                     {
                         ReservationCode = csvReservationCode,
-                        FlightNumber = csvFlightNumber,
-                        Airline = csvAirline,
                         Name = csvName,
                         Citizenship = csvCitizenship,
-                        Status = csvStatus,
+                        FlightNumber = csvFlightNumber,
+                        Airline = csvAirline,
                         DayOfWeek = csvDay,
                         DepartureTime = csvDepartureTime,
-                        Price = csvPrice
+                        Price = csvPrice,
+                        Status = csvStatus,
+                        
                     });
+
                 }
             }
         }
 
-        public void SaveReservationsToCsv()
+        private void SaveReservationsToCsv(List<Reservation> reservations)
         {
             StringBuilder csv = new StringBuilder();
             csv.AppendLine("ReservationCode,Name,Citizenship,FlightNumber,Airline,DayOfWeek,DepartureTime,Price,Status");
 
             foreach (var reservation in reservations)
             {
-                // Add the reservation to the CSV
+
                 csv.AppendLine($"{reservation.ReservationCode},{reservation.Name},{reservation.Citizenship},{reservation.FlightNumber},{reservation.Airline},{reservation.DayOfWeek},{reservation.DepartureTime},{reservation.Price},{reservation.Status}");
-
-                // Add additional logic to save updated reservations as new records
-                if (reservation.Status == "Inactive")
-                {
-                    var updatedReservation = new Reservation
-                    {
-                        ReservationCode = reservation.ReservationCode,
-                        FlightNumber = reservation.FlightNumber,
-                        Airline = reservation.Airline,
-                        Name = reservation.Name,
-                        Citizenship = reservation.Citizenship,
-                        Status = reservation.Status,
-                        DayOfWeek = reservation.DayOfWeek,
-                        DepartureTime = reservation.DepartureTime,
-                        Price = reservation.Price
-                    };
-                    csv.AppendLine($"{updatedReservation.ReservationCode},{updatedReservation.Name},{updatedReservation.Citizenship},{updatedReservation.FlightNumber},{updatedReservation.Airline},{updatedReservation.DayOfWeek},{updatedReservation.DepartureTime},{updatedReservation.Price},{updatedReservation.Status}");
-                }
             }
-            string csvFilePath = Path.Combine(AppContext.BaseDirectory, @"resources/reservations.csv");
+
+            string documentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string csvFilePath = Path.Combine(documentsFolderPath, "reservations.csv");
             File.WriteAllText(csvFilePath, csv.ToString());
+
         }
-
-
     }
 }
     

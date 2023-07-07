@@ -77,11 +77,11 @@
     private string Cost { get; set; }
     private string Citizenship { get; set; }
     private string Status { get; set; }
-   
+
 
     private void FindReservation()
     {
-        var reservationManager = new ReservationManager("resources/reservations.csv");
+        var reservationManager = new ReservationManager("reservations.csv");
         MatchingReservations = reservationManager.FindReservations(ReservationCode, Airline, Name);
         if (MatchingReservations != null && MatchingReservations.Any())
         {
@@ -95,7 +95,7 @@
             Status = reservation.Status;
         }
     }
-    
+
 
     private void UpdateReservation()
     {
@@ -110,11 +110,10 @@
 
                 if (ReservationManager == null)
                 {
-                    ReservationManager = new ReservationManager("resources/reservations.csv");
+                    ReservationManager = new ReservationManager("reservations.csv");
                 }
 
                 ReservationManager.UpdateReservation(reservation);
-                ReservationManager.SaveReservationsToCsv(); // Save using the same ReservationManager instance
             }
         }
         catch (Exception ex)
@@ -122,4 +121,22 @@
             Console.WriteLine($"Error updating reservation: {ex.Message}");
         }
     }
+
+    private void SaveReservationsToCsv(List<Reservation> reservations)
+    {
+        StringBuilder csv = new StringBuilder();
+        csv.AppendLine("ReservationCode,Name,Citizenship,FlightNumber,Airline,DayOfWeek,DepartureTime,Price,Status");
+
+        foreach (var reservation in reservations)
+        {
+            
+            csv.AppendLine($"{reservation.ReservationCode},{reservation.Name},{reservation.Citizenship},{reservation.FlightNumber},{reservation.Airline},{reservation.DayOfWeek},{reservation.DepartureTime},{reservation.Price},{reservation.Status}");
+        }
+
+        string documentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        string csvFilePath = Path.Combine(documentsFolderPath, "reservations.csv");
+        File.WriteAllText(csvFilePath, csv.ToString());
+
+    }
+
 }

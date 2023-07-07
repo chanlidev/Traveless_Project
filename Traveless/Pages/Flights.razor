@@ -156,17 +156,19 @@
 
     private void SaveReservationsToCsv(List<Reservation> reservations)
     {
-        var csv = new StringBuilder();
+        StringBuilder csv = new StringBuilder();
         csv.AppendLine("ReservationCode,Name,Citizenship,FlightNumber,Airline,DayOfWeek,DepartureTime,Price,Status");
 
         foreach (var reservation in reservations)
         {
-            var line = $"{reservation.ReservationCode},{reservation.Name},{reservation.Citizenship},{reservation.FlightNumber},{reservation.Airline},{reservation.DayOfWeek},{reservation.DepartureTime},{reservation.Price},{reservation.Status}";
-            csv.AppendLine(line);
+
+            csv.AppendLine($"{reservation.ReservationCode},{reservation.Name},{reservation.Citizenship},{reservation.FlightNumber},{reservation.Airline},{reservation.DayOfWeek},{reservation.DepartureTime},{reservation.Price},{reservation.Status}");
         }
 
-        var csvFilePath = Path.Combine(AppContext.BaseDirectory, @"resources/reservations.csv");
+        string documentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        string csvFilePath = Path.Combine(documentsFolderPath, "reservations.csv");
         File.WriteAllText(csvFilePath, csv.ToString());
+
     }
 
 

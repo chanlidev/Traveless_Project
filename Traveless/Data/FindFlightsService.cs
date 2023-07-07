@@ -10,7 +10,7 @@ namespace Traveless.Data
         {
             List<Flight> matchingFlights = new List<Flight>();
 
-            string filePath = Path.Combine(AppContext.BaseDirectory, @"resources/flights.csv");
+            string filePath = Path.Combine(AppContext.BaseDirectory, "Resources/CSV/flights.csv");
             string[] lines = File.ReadAllLines(filePath);
 
             foreach (string line in lines)
