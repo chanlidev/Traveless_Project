@@ -65,6 +65,12 @@
         <button @onclick="UpdateReservation" style="background-color: blue; color: white; width: 200px;">Update</button>
     </div>
 </div>
+<div style="text-align: center; margin-top: 10px;">
+    @if (!string.IsNullOrEmpty(NewReservationCode))
+    {
+        <p>Updated! New Reservation Code: @NewReservationCode</p>
+    }
+</div>
 
 
 @code {
@@ -77,6 +83,7 @@
     private string Cost { get; set; }
     private string Citizenship { get; set; }
     private string Status { get; set; }
+    private string NewReservationCode { get; set; }
 
 
     private void FindReservation()
@@ -104,16 +111,38 @@
             var reservation = MatchingReservations?.FirstOrDefault();
             if (reservation != null)
             {
-                reservation.Name = Name;
-                reservation.Citizenship = Citizenship;
-                reservation.Status = Status;
+                bool isNameChanged = reservation.Name != Name;
+                bool isCitizenshipChanged = reservation.Citizenship != Citizenship;
 
-                if (ReservationManager == null)
+                if (isNameChanged || isCitizenshipChanged)
                 {
-                    ReservationManager = new ReservationManager("reservations.csv");
+                    reservation.Status = "Inactive"; // Soft-delete the existing reservation
+                    if (ReservationManager == null)
+                    {
+                        ReservationManager = new ReservationManager("reservations.csv");
+                    }
+                    NewReservationCode = GenerateReservationCode();
+                    ReservationManager.AddReservation(new Reservation
+                        {
+                            ReservationCode = NewReservationCode,
+                            Name = Name,
+                            Citizenship = Citizenship,
+                            FlightNumber = reservation.FlightNumber,
+                            Airline = reservation.Airline,
+                            DayOfWeek = reservation.DayOfWeek,
+                            DepartureTime = reservation.DepartureTime,
+                            Price = reservation.Price,
+                            Status = "Active"
+                        });
+                    ReservationManager.SaveReservationsToCsv(ReservationManager.GetReservations()); ; // Save the updated reservations to the CSV file
                 }
-
-                ReservationManager.UpdateReservation(reservation);
+                else
+                {
+                    reservation.Name = Name;
+                    reservation.Citizenship = Citizenship;
+                    reservation.Status = Status;
+                    ReservationManager.SaveReservationsToCsv(ReservationManager.GetReservations()); 
+                }
             }
         }
         catch (Exception ex)
@@ -122,21 +151,16 @@
         }
     }
 
-    private void SaveReservationsToCsv(List<Reservation> reservations)
+    private string GenerateReservationCode()
     {
-        StringBuilder csv = new StringBuilder();
-        csv.AppendLine("ReservationCode,Name,Citizenship,FlightNumber,Airline,DayOfWeek,DepartureTime,Price,Status");
+        // Generate a random letter using ASCII codes (65-90 represent A-Z)
+        char letter = (char)(new Random().Next(65, 91));
 
-        foreach (var reservation in reservations)
-        {
-            
-            csv.AppendLine($"{reservation.ReservationCode},{reservation.Name},{reservation.Citizenship},{reservation.FlightNumber},{reservation.Airline},{reservation.DayOfWeek},{reservation.DepartureTime},{reservation.Price},{reservation.Status}");
-        }
+        // Generate a random 4-digit number
+        int number = new Random().Next(1000, 10000);
 
-        string documentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        string csvFilePath = Path.Combine(documentsFolderPath, "reservations.csv");
-        File.WriteAllText(csvFilePath, csv.ToString());
-
+        // Combine the letter and number to form the reservation code
+        return $"{letter}{number}";
     }
 
 }

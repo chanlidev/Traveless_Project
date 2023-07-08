@@ -80,11 +80,12 @@ namespace Traveless.Data
                 {
                     // Soft-delete the existing flight reservation by marking it as inactive
                     existingReservation.Status = "Inactive";
+                    SaveReservationsToCsv(reservations); // Save the updated status to the CSV file
 
                     // Create a new reservation record with the updated values
                     var updatedReservation = new Reservation
                     {
-                        ReservationCode = existingReservation.ReservationCode,
+                        ReservationCode = Guid.NewGuid().ToString(),
                         Name = reservation.Name,
                         Citizenship = reservation.Citizenship,
                         FlightNumber = existingReservation.FlightNumber,
@@ -93,10 +94,9 @@ namespace Traveless.Data
                         DepartureTime = existingReservation.DepartureTime,
                         Price = existingReservation.Price,
                         Status = reservation.Status
-                        
                     };
 
-                    // Add the updated reservation to the list
+                    // Add the updated reservation as a new record
                     reservations.Add(updatedReservation);
                     SaveReservationsToCsv(reservations);
                 }
@@ -108,8 +108,6 @@ namespace Traveless.Data
                     existingReservation.Status = reservation.Status;
                     SaveReservationsToCsv(reservations);
                 }
-
-                
             }
             else
             {
@@ -117,6 +115,10 @@ namespace Traveless.Data
             }
         }
 
+        public List<Reservation> GetReservations()
+        {
+            return reservations;
+        }
 
         private void LoadReservationsFromCsv(List<Reservation> reservations)
         {
@@ -154,7 +156,7 @@ namespace Traveless.Data
             }
         }
 
-        private void SaveReservationsToCsv(List<Reservation> reservations)
+        public void SaveReservationsToCsv(List<Reservation> reservations)
         {
             StringBuilder csv = new StringBuilder();
             csv.AppendLine("ReservationCode,Name,Citizenship,FlightNumber,Airline,DayOfWeek,DepartureTime,Price,Status");
